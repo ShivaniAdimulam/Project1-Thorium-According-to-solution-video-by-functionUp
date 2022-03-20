@@ -34,6 +34,11 @@ const authorisation=async function mid1(req,res,next){
     console.log(Blogtobemodified)
     let Authorloggedin=validToken.authorId
     console.log(Authorloggedin)
+
+     //let userId= req.query.authorId
+    // if(userId!=Blogtobemodified) {return res.status(403).send({msg:"Authorisation failed"})}
+
+    
     if(Blogtobemodified!=Authorloggedin){return res.status(403).send({msg:"Authorisation failed"})}
 
     // let authorId = await BlogModel.find({ _id : blogId }).select({ authorId : 1 , _id : 0})
@@ -103,3 +108,4 @@ module.exports.authorisation=authorisation
 
 
 
+//|| userId!=Authorloggedin

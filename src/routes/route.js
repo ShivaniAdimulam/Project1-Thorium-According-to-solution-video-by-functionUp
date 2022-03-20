@@ -5,7 +5,7 @@ const authorController= require("../controllers/authorController")
 const middleWare = require ("../middlewares/auth")
 
 
-router.post("/authors",blogController.createAuthor)
+router.post("/authors",authorController.createAuthor)
 
 router.post("/blogs",middleWare.mid,blogController.createBlog)
 
