@@ -1,6 +1,6 @@
 const AuthorModel= require("../models/authorModel")
 const jwt = require("jsonwebtoken");
-const authorModel = require("../models/authorModel");
+//const authorModel = require("../models/authorModel");
 
 const isValid = function(value){
   if(typeof value === 'undefined' || value===null) return false
@@ -24,18 +24,37 @@ const createAuthor = async function (req, res) {
       let requestBody = req.body;
       
       if(!isValidRequestBody(requestBody)){
-        res.status(400).send({status:false, message:'invalid request parameters.please provide blog details'})
+        res.status(400).send({status:false, message:'invalid request parameters.please provide Author details'})
         return
       }
 
       const {fname,lname,title,email,password} = requestBody;
 
-      if (!isValid.fname) {return res.status(400).send({status:false, msg:"first name is required"})}
-      if (!isValid.lname) {return res.status(400).send({status:false, msg:"last name is required"})}
-      if (!isValid.email) {return res.status(400).send({status:false, msg:"email is required"})}
-      if (!isValid.password) {return res.status(400).send({status:false, msg:"password is required"})}
+      if (!requestBody.fname) {
+        res.status(400).send({status:false, msg:"first name is required"})
+        return
+      }
+      if (!requestBody.lname) {
+        res.status(400).send({status:false, msg:"last name is required"})
+        return
+      }
 
-      const isEmailAlreadyUsed = await authorModel.findOne({email});
+      if (!requestBody.title) {
+        res.status(400).send({status:false, msg:"title is required"})
+        return
+      }
+
+
+      if (!requestBody.email) {
+        res.status(400).send({status:false, msg:"email is required"})
+        return
+      }
+      if (!requestBody.password) {
+        res.status(400).send({status:false, msg:"password is required"})
+        return
+      }
+
+      const isEmailAlreadyUsed = await AuthorModel.findOne({email});
       if(isEmailAlreadyUsed){
         res.status(400).send({status:false, message:'${email} is already registerd email address'})
         return
@@ -74,21 +93,21 @@ const loginAuthor = async function (req, res) {
     let requestBody = req.body
 
     if(!isValidRequestBody(requestBody)){
-      res.status(400).send({status:false, message:'invalid request parameters.please provide blog details'})
+      res.status(400).send({status:false, message:'invalid request parameters.please provide Author details'})
       return
     }
 
-    if (!isValid.email) {return res.status(400).send({status:false, msg:"email is required"})}
+    if (!requestBody.email) {return res.status(400).send({status:false, msg:"email is required"})}
 
-    const emailRegexp = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    // const emailRegexp = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
-    if(emailRegexp.test(req.body.email)){
-      res.status(400).send({status:false, message:'email should be va;lid email address'}) 
-      return
-    }
+    // if(emailRegexp.test(req.body.email)){
+    //   res.status(400).send({status:false, message:'email should be valid email address'}) 
+    //   return
+    // }
 
 
-    if (!isValid.password) {return res.status(400).send({status:false, msg:"password is required"})}
+    if (!requestBody.password) {return res.status(400).send({status:false, msg:"password is required"})}
 
   
     let author = await AuthorModel.findOne({ email: email, password: password });

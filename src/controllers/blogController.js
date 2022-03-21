@@ -2,7 +2,7 @@ const { count } = require("console")
 const BlogModel = require("../models/blogModel")
 const AuthorModel = require("../models/authorModel");
 const { default: mongoose } = require("mongoose");
-const blogModel = require("../models/blogModel");
+//const blogModel = require("../models/blogModel");
 
 
 // const createAuthor = async function (req, res) {
@@ -56,7 +56,7 @@ const createBlog = async function (req, res) {
     try {
         
         let requestBody = req.body
-        let authorid = blog.authorId
+        let authorid = requestBody.authorId
         
        
         
@@ -73,13 +73,13 @@ const createBlog = async function (req, res) {
 
         const {title,body,authorId,tags,category,subcategory,isPublished} = requestBody
 
-        if (!isValid(title)) {return res.status(400).send({status:false, msg:"title is required"})}
+        if (!requestBody.title) {return res.status(400).send({status:false, msg:"title is required"})}
 
-        if (!isValid(body)) {return res.status(400).send({status:false, msg:"body is required"})}
-        if (!isValid(authorId)) {return res.status(400).send({status:false, msg:"authorId is required"})}
+        if (!requestBody.body) {return res.status(400).send({status:false, msg:"body is required"})}
+        if (!requestBody.authorId) {return res.status(400).send({status:false, msg:"authorId is required"})}
 
         if (!isValidObjectId(authorId)) {return res.status(400).send({status:false, msg:"${authorId} is not valid autorId"})}
-        if (!isValid(category)) {return res.status(400).send({status:false, msg:"category is required"})}
+        if (!requestBody.category) {return res.status(400).send({status:false, msg:"category is required"})}
        
         
         const blogData = {
@@ -119,7 +119,7 @@ const getBlogsData = async function (req, res) {
         if(isValidRequestBody(queryParams)){
             const{authorId,category,tags,subcategory} = queryParams
 
-            if(isValid(authorId) && isValidObjectId(authorId)){
+            if(queryParams.authorId && isValidObjectId(authorId)){
                 filterquery['authorId'] = authorId
             }
 
@@ -145,6 +145,7 @@ const getBlogsData = async function (req, res) {
         
         if (Array.isArray(blogs) && blogs.length===0) {
         res.status(404).send({ msg: "No blog found", status: false })
+        return
         }
         
         res.status(200).send({ msg: "blogs list",data: blogs, status: true })
@@ -159,7 +160,8 @@ const getBlogsData = async function (req, res) {
 const updateBlogs = async function (req, res) {
     try {
         let requestBody = req.body
-        
+        let authorIdFromToken = req.authorId
+        let params = req.params
         let blogId = req.params.blogId
 
         if(!isValidObjectId(blogId)){
@@ -167,20 +169,20 @@ const updateBlogs = async function (req, res) {
             return
         }
 
-        if(!isValidObjectId(authorIdFromToken)){
-            res.status(400).send({status:false,msg:'${authorIsFromToken} is not a valid token id'})
-            return
-        }
+        // if(!isValidObjectId(authorIdFromToken)){
+        //     res.status(400).send({status:false,msg:'${authorIsFromToken} is not a valid token id'})
+        //     return
+        // }
         let blog = await BlogModel.findOne({ _id: blogId, isDeleted: false, deletedAt:null })
 
         if (!blog) {
             res.status(404).send({ msg: "no blog found" })
         }
 
-        if(blog.authorId.toString() !== authorIdFromToken){
-            res.status(401).send({status:false, msg:'unauthorised access ,owner info doesnt match'})
-            return
-        }
+        // if(blog.authorId.toString() !== authorIdFromToken){
+        //     res.status(401).send({status:false, msg:'unauthorised access ,owner info doesnt match'})
+        //     return
+        // }
 
         if(!isValidRequestBody(requestBody)){
             res.status(200).send({status:true, msg:'no parameters passed,blog unmodified', data:blog})
@@ -229,10 +231,10 @@ const updateBlogs = async function (req, res) {
         if(subcategory){
             if(!Object.prototype.hasOwnProperty.call(updatedBlogData,'$addToset')) updatedBlogData['$addToset'] ={}
 
-            if(Array.isArray(tags)){
+            if(Array.isArray(subcategory)){
                 updatedBlogData['$addToSet']['subcategory']={ $each:[...subcategory]}
             }
-            if(typeof tags === "string"){
+            if(typeof subcategory === "string"){
                 updatedBlogData['$addToSet']['subcategory']=subcategory
             }
 
@@ -263,20 +265,20 @@ const deletePath = async function (req, res) {
 
         }
 
-        if(!isValidObjectId(authorIdFromToken)){
-            res.status(400).send({status:false,msg:'${authorIsFromToken} is not a valid token id'})
-            return
-        }
+        // if(!isValidObjectId(authorIdFromToken)){
+        //     res.status(400).send({status:false,msg:'${authorIsFromToken} is not a valid token id'})
+        //     return
+        // }
         let blog = await BlogModel.findOne({_id:blogId, isDeleted:false,deletedAt:null})
         if (!blog) {
             res.status(404).send({ msg: "No Blog found" })
             return
             } 
 
-        if(blog.authorId.toString() !== authorIdFromToken){
-                res.status(401).send({status:false, msg:'unauthorised access ,owner info doesnt match'})
-                return
-            }
+        // if(blog.authorId.toString() !== authorIdFromToken){
+        //         res.status(401).send({status:false, msg:'unauthorised access ,owner info doesnt match'})
+        //         return
+        //     }
         await BlogModel.findOneAndUpdate({_id:blogId},{$set:{isDeleted:true,deletedAt:new Date()}})
         res.status(200).send({status:true,msg:'blog deleted successfully'})
     } catch (err) {
@@ -292,10 +294,10 @@ const deleteBlog = async function (req, res) {
         const filterquery = {isDeleted:false,deletedAt:null}
         let queryParams = req.query
         const authorIdFromToken = req.authorId
-        if(!isValidObjectId(authorIdFromToken)){
-            res.status(400).send({status:false,msg:'${authorIsFromToken} is not a valid token id'})
-            return  
-        }
+        // if(!isValidObjectId(authorIdFromToken)){
+        //     res.status(400).send({status:false,msg:'${authorIsFromToken} is not a valid token id'})
+        //     return  
+        // }
 
         if(!isValidRequestBody(queryParams)){
             res.status(400).send({status:false,msg:'no query params received. aborting delete operation'})
@@ -327,7 +329,7 @@ const deleteBlog = async function (req, res) {
 
         }
 
-        const blogs =await BlogModel.find(filterquery);
+        const blogs =await BlogModel.findOneAndUpdate(filterquery,{$set:{isDeleted:true,deletedAt:new Date()}});
 
         if (Array.isArray(blogs) && blogs.length===0) {
             res.status(404).send({ msg: "No blog found", status: false })
@@ -411,7 +413,7 @@ const deleteBlog = async function (req, res) {
 
 
 module.exports.createBlog = createBlog
-module.exports.createAuthor = createAuthor
+//module.exports.createAuthor = createAuthor
 module.exports.getBlogsData = getBlogsData
 module.exports.updateBlogs = updateBlogs
 module.exports.deletePath = deletePath
