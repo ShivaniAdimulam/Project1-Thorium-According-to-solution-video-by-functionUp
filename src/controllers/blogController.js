@@ -87,19 +87,27 @@ const createBlog = async function (req, res) {
             body,
             authorId,
             category,
+           
             isPublished: isPublished ? isPublished :false,
             publishedAt: isPublished ? new Date() : null
         }
 
-        if(tags){
-            if(Array.isArray(tags)){
-                blogData['tags'] = [...tags]
+        if(tags) {
+            if(Array.isArray(tags)) {
+                blogData['tags'] = [...tags]  
             }
-            if(Object.prototype.toString.call(tags)=== "[object String]"){
-                blogData['subcategory'] = [subcategory]
+            if(typeof(tags)==='string') {
+                blogData['tags'] = [ tags ]
             }
         }
-
+        if(subcategory) {
+            if(Array.isArray(subcategory)) {
+                blogData['subcategory'] = [...subcategory]
+            }
+            if(typeof(subcategory)==='string') {
+                blogData['subcategory'] = [ subcategory ]
+            }
+        }
 
         let blogCreated = await BlogModel.create(blogData)
         return res.status(200).send({ message:'new blog created successfully' ,data: blogCreated })
@@ -143,7 +151,7 @@ const getBlogsData = async function (req, res) {
         //let allBlogs = await BlogModel.find({ isDeleted: false,isPublished: true },{$or:[{category:category},{authorId:authorId},{tags:{$all:[tags]}},{subcategory:{$all:[subcategory]}}]}).populate("authorId")
         const blogs = await BlogModel.find(filterquery)
         
-        if (Array.isArray(blogs) && blogs.length===0) {
+        if (blogs.length===0) {
         res.status(404).send({ msg: "No blog found", status: false })
         return
         }
@@ -217,27 +225,25 @@ const updateBlogs = async function (req, res) {
             updatedBlogData['$set']['publishedAt']=isPublished ? new Date() : null
         }
 
-        if(tags){
-            if(!Object.prototype.hasOwnProperty.call(updatedBlogData,'$addToset')) updatedBlogData['$addToset'] ={}
+        if(tags) {
+            if(!Object.prototype.hasOwnProperty.call(updatedBlogData, '$addToSet')) updatedBlogData['$addToSet'] = {}
 
-            if(Array.isArray(tags)){
-                updatedBlogData['$addToSet']['tags']={ $each:[...tags]}
+            if(Array.isArray(tags)) {
+                updatedBlogData['$addToSet']['tags'] = { $each: [...tags]}
             }
-            if(typeof tags === "string"){
-                updatedBlogData['$addToSet']['tags']=tags
+            if(typeof tags === "string") {
+                updatedBlogData['$addToSet']['tags'] = tags
             }
         }
 
-        if(subcategory){
-            if(!Object.prototype.hasOwnProperty.call(updatedBlogData,'$addToset')) updatedBlogData['$addToset'] ={}
-
-            if(Array.isArray(subcategory)){
-                updatedBlogData['$addToSet']['subcategory']={ $each:[...subcategory]}
+        if(subcategory) {
+            if(!Object.prototype.hasOwnProperty.call(updatedBlogData, '$addToSet')) updatedBlogData['$addToSet'] = {}
+            if(Array.isArray(subcategory)) {
+                updatedBlogData['$addToSet']['subcategory'] = { $each: [...subcategory]}
             }
-            if(typeof subcategory === "string"){
-                updatedBlogData['$addToSet']['subcategory']=subcategory
+            if(typeof subcategory === "string") {
+                updatedBlogData['$addToSet']['subcategory'] = subcategory
             }
-
         }
         
        const updatedBlog = await BlogModel.findOneAndUpdate({_id:blogId}, updatedBlogData,{new:true})

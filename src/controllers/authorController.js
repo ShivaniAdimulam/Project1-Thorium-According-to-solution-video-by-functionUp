@@ -30,14 +30,20 @@ const createAuthor = async function (req, res) {
 
       const {fname,lname,title,email,password} = requestBody;
 
-      if (!requestBody.fname) {
+      if (!isValid.fname) {
         res.status(400).send({status:false, msg:"first name is required"})
         return
       }
-      if (!requestBody.lname) {
+      if (!isValid.lname) {
         res.status(400).send({status:false, msg:"last name is required"})
         return
       }
+
+      if (!isValidTitle.title) {
+        res.status(400).send({status:false, msg:"enter valid title"})
+        return
+      }
+
 
       if (!requestBody.title) {
         res.status(400).send({status:false, msg:"title is required"})
